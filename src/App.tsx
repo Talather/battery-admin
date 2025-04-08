@@ -4,6 +4,8 @@ import CreateAthleteToken from './components/athletes/CreateAthleteToken';
 import AthleteTokenList from './components/athletes/AthleteTokenList';
 import CreateFTO from './components/ftos/CreateFTO';
 import FTOList from './components/ftos/FTOList';
+import EventList from './components/events/EventList';
+import CreateEvent from './components/events/CreateEvent';
 import { createTheme, ThemeProvider } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -113,12 +115,14 @@ function App() {
       <LocalizationProvider dateAdapter={AdapterDateFns}>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Layout />}>
+            <Route path="/*" element={<Layout />}>
               <Route index element={<Navigate to="/athletes" replace />} />
               <Route path="athletes" element={<AthleteTokenList />} />
               <Route path="athletes/create" element={<CreateAthleteToken />} />
               <Route path="ftos" element={<FTOList />} />
               <Route path="ftos/create" element={<CreateFTO />} />
+              <Route path="events" element={<EventList />} />
+              <Route path="events/create" element={<CreateEvent />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -20,11 +20,8 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import TokenIcon from '@mui/icons-material/Token';
 import CampaignIcon from '@mui/icons-material/Campaign';
-import { Link, Routes, Route } from 'react-router-dom';
-import AthleteTokenList from './athletes/AthleteTokenList';
-import CreateAthleteToken from './athletes/CreateAthleteToken';
-import FTOList from './ftos/FTOList';
-import CreateFTO from './ftos/CreateFTO';
+import EventIcon from '@mui/icons-material/Event';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 const drawerWidth = 280;
 
@@ -50,7 +47,6 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
     borderRight: '1px solid rgba(255, 255, 255, 0.1)',
   },
 }));
-
 
 interface StyledListItemButtonProps {
   to: string;
@@ -83,11 +79,13 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Athlete Tokens', icon: <TokenIcon />, path: '/athletes' },
   { text: 'FTOs', icon: <CampaignIcon />, path: '/ftos' },
+  { text: 'Events', icon: <EventIcon />, path: '/events' },
 ];
 
 export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
+  const location = useLocation();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -96,7 +94,6 @@ export default function Layout() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-
 
   const drawer = (
     <Box>
@@ -134,7 +131,7 @@ export default function Layout() {
           <StyledListItemButtonWithLink
             key={item.text}
             to={item.path}
-            selected={window.location.pathname === item.path}
+            selected={location.pathname.startsWith(item.path)}
             component={Link}
           >
             <ListItemIcon sx={{ color: 'text.secondary', minWidth: 40 }}>
@@ -207,13 +204,7 @@ export default function Layout() {
   }}
 >
         <Toolbar />
-        <Routes>
-          <Route path="/" element={<AthleteTokenList />} />
-          <Route path="/athletes" element={<AthleteTokenList />} />
-          <Route path="/athletes/create" element={<CreateAthleteToken />} />
-          <Route path="/ftos" element={<FTOList />} />
-          <Route path="/ftos/create" element={<CreateFTO />} />
-        </Routes>
+        <Outlet />
       </Box>
 
     </Box>
