@@ -29,7 +29,7 @@ interface EditFTOProps {
 
 interface FTO {
   id: string;
-  athleteId: string;
+  athleteTokenId: string;
   tokensForSale: number;
   purchaseLimit: number;
   roundNumber: number;
@@ -55,7 +55,6 @@ export default function EditFTO({ open, onClose, ftoId, onUpdate }: EditFTOProps
   const [saving, setSaving] = useState(false);
   const [otherActiveFtoExists, setOtherActiveFtoExists] = useState(false);
   const [activeWarning, setActiveWarning] = useState(false);
-
   useEffect(() => {
     if (open && ftoId) {
       fetchFTOData();
@@ -85,7 +84,7 @@ export default function EditFTO({ open, onClose, ftoId, onUpdate }: EditFTOProps
   const fetchAthletes = async () => {
     try {
       const { data, error } = await supabase
-        .from('Athletes')
+        .from('Atheletes')
         .select('id, firstName, lastName, fanTokenSymbol');
 
       if (error) throw error;
@@ -209,8 +208,8 @@ export default function EditFTO({ open, onClose, ftoId, onUpdate }: EditFTOProps
               <FormControl fullWidth>
                 <InputLabel>Athlete</InputLabel>
                 <Select
-                  value={fto.athleteId}
-                  onChange={handleSelectChange('athleteId')}
+                  value={fto.athleteTokenId}
+                  onChange={handleSelectChange('athleteTokenId')}
                   label="Athlete"
                   required
                 >

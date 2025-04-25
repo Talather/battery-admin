@@ -6,6 +6,8 @@ import CreateFTO from './components/ftos/CreateFTO';
 import FTOList from './components/ftos/FTOList';
 import EventList from './components/events/EventList';
 import CreateEvent from './components/events/CreateEvent';
+import SubmissionsList from './components/submissions/SubmissionsList';
+import UserList from './components/UserList';
 import { createTheme, ThemeProvider } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -122,7 +124,9 @@ function App() {
               <Route path="ftos" element={<FTOList />} />
               <Route path="ftos/create" element={<CreateFTO />} />
               <Route path="events" element={<EventList />} />
-              <Route path="events/create" element={<CreateEvent />} />
+              <Route path="create-event" element={<CreateEvent />} />
+              <Route path="submissions/:eventId" element={<SubmissionsList />} />
+              <Route path="users" element={<UserList />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -94,7 +94,7 @@ export default function FTOList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
   const [filters, setFilters] = useState<Filters>({
@@ -668,7 +668,7 @@ export default function FTOList() {
     return ftos.filter((fto) => new Date(fto.endDate) < currentDate);
   };
   const getCurrentFTOs = () => {
-    return ftos.filter((fto) => new Date(fto.startDate) > currentDate && new Date(fto.endDate) < currentDate);
+    return ftos.filter((fto) => new Date(fto.startDate) < currentDate && new Date(fto.endDate) > currentDate);
   };
   
 

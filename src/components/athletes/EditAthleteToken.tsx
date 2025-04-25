@@ -14,6 +14,7 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Typography,
 } from '@mui/material';
 import { supabase } from '../../lib/supabase';
 import { countries } from './../../lib/countries';
@@ -36,6 +37,7 @@ interface AthleteToken {
   fanTokenSymbol: string;
   fanTokenInitialPrice: number;
   totalNoOfFanTokens: number;
+  profilePicture?: string;
 }
 
 export default function EditAthleteToken({ open, onClose, athleteId, onUpdate }: EditAthleteTokenProps) {
@@ -43,6 +45,8 @@ export default function EditAthleteToken({ open, onClose, athleteId, onUpdate }:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [currentProfilePicture, setCurrentProfilePicture] = useState<string>('');
 
   useEffect(() => {
     if (open && athleteId) {
@@ -61,6 +65,9 @@ export default function EditAthleteToken({ open, onClose, athleteId, onUpdate }:
 
       if (error) throw error;
       setAthlete(data);
+      if (data.profilePicture) {
+        setCurrentProfilePicture(data.profilePicture);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch athlete data');
     } finally {
@@ -84,9 +91,28 @@ export default function EditAthleteToken({ open, onClose, athleteId, onUpdate }:
 
     try {
       setSaving(true);
+      
+      let profilePictureUrl = currentProfilePicture;
+      
+      // Upload new profile picture if one was selected
+      if (profilePicture) {
+        const fileExt = profilePicture.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        
+        const { data, error: uploadError } = await supabase.storage
+          .from('athletes')
+          .upload(fileName, profilePicture);
+
+        if (uploadError) throw uploadError;
+        profilePictureUrl = "https://veoivkpeywpcyxaikgng.supabase.co/storage/v1/object/public/" + data.fullPath;
+      }
+
       const { error } = await supabase
         .from('Atheletes')
-        .update(athlete)
+        .update({
+          ...athlete,
+          profilePicture: profilePictureUrl
+        })
         .eq('id', athleteId);
 
       if (error) throw error;
@@ -150,6 +176,41 @@ export default function EditAthleteToken({ open, onClose, athleteId, onUpdate }:
                 onChange={handleChange('nickName')}
               />
             </Grid>
+            
+            {/* Profile Picture Section */}
+            <Grid item xs={12}>
+              <Box sx={{ mb: 2 }}>
+                {currentProfilePicture && (
+                  <Box mb={2}>
+                    <Typography variant="subtitle1" gutterBottom>Current Profile Picture:</Typography>
+                    <img 
+                      src={currentProfilePicture} 
+                      alt="Athlete profile" 
+                      style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '4px' }} 
+                    />
+                  </Box>
+                )}
+                
+                <Button
+                  variant="contained"
+                  component="label"
+                >
+                  Update Profile Picture
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={(e) => setProfilePicture(e.target.files?.[0] || null)}
+                  />
+                </Button>
+                {profilePicture && (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    New image selected: {profilePicture.name}
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
+            
             <Grid item xs={12}>
               <TextField
                 fullWidth

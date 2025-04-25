@@ -21,6 +21,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import TokenIcon from '@mui/icons-material/Token';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import EventIcon from '@mui/icons-material/Event';
+import PeopleIcon from '@mui/icons-material/People';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 const drawerWidth = 280;
@@ -80,11 +81,12 @@ const menuItems = [
   { text: 'Athlete Tokens', icon: <TokenIcon />, path: '/athletes' },
   { text: 'FTOs', icon: <CampaignIcon />, path: '/ftos' },
   { text: 'Events', icon: <EventIcon />, path: '/events' },
+  { text: 'Users', icon: <PeopleIcon />, path: '/users' },
 ];
 
 export default function Layout() {
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const location = useLocation();
 
   const handleDrawerOpen = () => {

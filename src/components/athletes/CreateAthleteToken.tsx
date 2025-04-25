@@ -5,7 +5,22 @@ import * as Yup from 'yup';
 import { supabase } from '../../lib/supabase';
 import { countries } from '../../lib/countries';
 
-const sports = ['Football', 'Basketball', 'Tennis', 'Baseball', 'Golf'];
+const sports = [
+  'Football',
+  'Basketball',
+  'Tennis',
+  'Baseball',
+  'Golf',
+  'Boxing',
+  'MMA',
+  'US Football',
+  'Rugby',
+  'Cricket',
+  'Formula 1',
+  'Hockey',
+  'E-sports'
+];
+
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const validationSchema = Yup.object({
@@ -50,7 +65,6 @@ export default function CreateAthleteToken() {
             .from('athletes')
             .upload(fileName, profilePicture);
             console.log(error);
-console.log(data);
 
 
           if (error) throw error;

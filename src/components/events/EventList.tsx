@@ -28,6 +28,9 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ChipProps } from '@mui/material/Chip';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -38,9 +41,13 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import LiveTvIcon from '@mui/icons-material/LiveTv';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import EventIcon from '@mui/icons-material/Event';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import EditEvent from './EditEvent.tsx';
+import { format, parseISO, isValid } from 'date-fns';
 
 interface Event {
   id: string;
@@ -49,6 +56,8 @@ interface Event {
   name: string;
   description: string;
   type: 'video' | 'live_stream' | 'contest';
+  day: string | null;
+  contest_end_date: string | null;
   video_url: string | null;
   live_stream_url: string | null;
 }
@@ -58,11 +67,13 @@ interface Athlete {
   firstName: string;
   lastName: string;
   profilePicture: string;
+  dayOfTheWeek:string;
 }
 
 interface Filters {
   type: string;
   athleteId: string;
+  day: Date | null;
 }
 
 export default function EventList() {
@@ -73,12 +84,13 @@ export default function EventList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(isMobile ? 5 : 10);
   const [filters, setFilters] = useState<Filters>({
     type: '',
     athleteId: '',
+    day: null,
   });
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -114,7 +126,7 @@ export default function EventList() {
     try {
       const { data, error } = await supabase
         .from('Atheletes')
-        .select('id, firstName, lastName, profilePicture');
+        .select('id, firstName, lastName, profilePicture, dayOfTheWeek');
       
       if (error) throw error;
       
@@ -166,8 +178,25 @@ export default function EventList() {
       
       const matchesType = !filters.type || event.type === filters.type;
       const matchesAthlete = !filters.athleteId || event.athelete_token_id === filters.athleteId;
+      
+      // Date filtering
+      let matchesDay = true;
+      if (filters.day && event.day) {
+        try {
+          const eventDate = parseISO(event.day);
+          const filterDate = filters.day;
+          matchesDay = (
+            eventDate.getDate() === filterDate.getDate() &&
+            eventDate.getMonth() === filterDate.getMonth() &&
+            eventDate.getFullYear() === filterDate.getFullYear()
+          );
+        } catch (e) {
+          console.error('Error parsing date:', e);
+          matchesDay = false;
+        }
+      }
 
-      return matchesSearch && matchesType && matchesAthlete;
+      return matchesSearch && matchesType && matchesAthlete && matchesDay;
     });
   };
 
@@ -202,6 +231,21 @@ export default function EventList() {
     }
   };
 
+  // Format date for display
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Not specified';
+    try {
+      const date = parseISO(dateString);
+      if (isValid(date)) {
+        return format(date, 'MMM dd, yyyy');
+      }
+      return 'Invalid date';
+    } catch (e) {
+      console.error('Error formatting date:', e);
+      return 'Invalid date';
+    }
+  };
+
   const renderFilters = () => (
     <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
       <FormControl sx={{ minWidth: 200 }}>
@@ -233,6 +277,20 @@ export default function EventList() {
           ))}
         </Select>
       </FormControl>
+
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <DatePicker
+          label="Filter by Date"
+          value={filters.day}
+          onChange={(date) => handleFilterChange('day', date)}
+          slotProps={{
+            textField: {
+              margin: 'normal',
+              sx: { minWidth: 200, mt: 0 }
+            }
+          }}
+        />
+      </LocalizationProvider>
     </Box>
   );
 
@@ -249,6 +307,10 @@ export default function EventList() {
                 <TableCell>Event Name</TableCell>
                 <TableCell>Athlete</TableCell>
                 <TableCell>Type</TableCell>
+                <TableCell>Event Date</TableCell>
+                {filters.type === 'contest' || paginatedEvents.some(e => e.type === 'contest') ? (
+                  <TableCell>Contest End Date</TableCell>
+                ) : null}
                 <TableCell>Date Created</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -270,6 +332,12 @@ export default function EventList() {
                       size="small"
                     />
                   </TableCell>
+                  <TableCell>{formatDate(event.day)}</TableCell>
+                  {filters.type === 'contest' || paginatedEvents.some(e => e.type === 'contest') ? (
+                    <TableCell>
+                      {event.type === 'contest' ? formatDate(event.contest_end_date) : '-'}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
                     {new Date(event.created_at).toLocaleDateString()}
                   </TableCell>
@@ -288,6 +356,17 @@ export default function EventList() {
                         </IconButton>
                       </Tooltip>
                     ) : null}
+                    {event.type === 'contest' && (
+                      <Tooltip title="View Submissions">
+                        <IconButton
+                          size="small"
+                          component={Link}
+                          to={`/submissions/${event.id}`}
+                        >
+                          <AssignmentIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Edit">
                       <IconButton
                         size="small"
@@ -309,7 +388,7 @@ export default function EventList() {
               ))}
               {paginatedEvents.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={7} align="center">
                     No events found
                   </TableCell>
                 </TableRow>
@@ -370,44 +449,64 @@ export default function EventList() {
                     </Typography>
                   </Box>
 
-                  <Typography variant="caption" color="text.secondary">
-                    Created: {new Date(event.created_at).toLocaleDateString()}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <CalendarTodayIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Date: {formatDate(event.day)}
+                    </Typography>
+                  </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Box>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleEdit(event.id)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(event.id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                  {event.type === 'contest' && event.contest_end_date && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <EventIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Contest Ends: {formatDate(event.contest_end_date)}
+                      </Typography>
                     </Box>
-                    
+                  )}
+
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                     {(event.type === 'video' && event.video_url) || 
-                     (event.type === 'live_stream' && event.live_stream_url) ? (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        endIcon={<OpenInNewIcon />}
-                        onClick={() => {
-                          const url = event.type === 'video' ? event.video_url : event.live_stream_url;
-                          if (url) window.open(url, '_blank');
-                        }}
-                      >
-                        {event.type === 'video' ? 'Watch Video' : 'Watch Live'}
-                      </Button>
+                    (event.type === 'live_stream' && event.live_stream_url) ? (
+                      <Tooltip title="Open Link">
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            const url = event.type === 'video' ? event.video_url : event.live_stream_url;
+                            if (url) window.open(url, '_blank');
+                          }}
+                        >
+                          <OpenInNewIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     ) : null}
+                    {event.type === 'contest' && (
+                      <Tooltip title="View Submissions">
+                        <IconButton
+                          size="small"
+                          component={Link}
+                          to={`/submissions/${event.id}`}
+                        >
+                          <AssignmentIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <Tooltip title="Edit">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEdit(event.id)}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDelete(event.id)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 </CardContent>
               </Card>
@@ -415,14 +514,14 @@ export default function EventList() {
           ))}
           {paginatedEvents.length === 0 && (
             <Grid item xs={12}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography>No events found</Typography>
-              </Paper>
+              <Typography variant="body1" align="center" sx={{ mt: 3 }}>
+                No events found
+              </Typography>
             </Grid>
           )}
         </Grid>
         <TablePagination
-          rowsPerPageOptions={[6, 12, 24]}
+          rowsPerPageOptions={[5, 10, 25]}
           component="div"
           count={filteredEvents.length}
           rowsPerPage={rowsPerPage}
@@ -437,51 +536,23 @@ export default function EventList() {
     );
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Events</Typography>
-        <Link to="/events/create" style={{ textDecoration: 'none' }}>
-          <Button variant="contained" color="primary">
-            Create New Event
-          </Button>
-        </Link>
-      </Box>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3, flexWrap: 'wrap' }}>
-        <TextField
-          placeholder="Search events..."
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setPage(0);
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ flexGrow: 1 }}
-        />
-        <Box>
+        <Typography variant="h5" component="h1">
+          Events
+        </Typography>
+      
+        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Link to="/create-event" style={{ textDecoration: 'none' }}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          // sx={{ position: 'fixed', bottom: 24, right: 24 }}
+        >
+          Create New Event
+        </Button>
+      </Link>
           <Tooltip title="Grid View">
             <IconButton 
               color={viewMode === 'grid' ? 'primary' : 'default'} 
@@ -498,14 +569,45 @@ export default function EventList() {
               <ViewListIcon />
             </IconButton>
           </Tooltip>
+
         </Box>
+      
+      </Box>
+    
+
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          placeholder="Search events..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
       </Box>
 
       {renderFilters()}
 
-      {viewMode === 'table' ? renderTableView() : renderGridView()}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
-      {editModalOpen && selectedEventId && (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 5 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        viewMode === 'table' ? renderTableView() : renderGridView()
+      )}
+
+      {selectedEventId && editModalOpen && (
         <EditEvent
           eventId={selectedEventId}
           open={editModalOpen}
@@ -513,6 +615,8 @@ export default function EventList() {
           athletes={athletesList}
         />
       )}
+
+
     </Box>
   );
 }
