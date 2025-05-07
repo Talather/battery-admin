@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import CreateAthleteToken from './components/athletes/CreateAthleteToken';
-import AthleteTokenList from './components/athletes/AthleteTokenList';
-import CreateFTO from './components/ftos/CreateFTO';
-import FTOList from './components/ftos/FTOList';
-import EventList from './components/events/EventList';
-import CreateEvent from './components/events/CreateEvent';
-import SubmissionsList from './components/submissions/SubmissionsList';
+import CompanyList from './components/companies/CompanyList';
+import CreateCompany from './components/companies/CreateCompany';
+import LocationList from './components/locations/LocationList';
+import CreateLocation from './components/locations/CreateLocation';
+import MapView from './components/map/MapView';
+import AnalyticsView from './components/analytics/AnalyticsView';
 import UserList from './components/UserList';
+import CreateUser from './components/CreateUser';
+import JobsList from './components/jobs/JobsList';
 import { createTheme, ThemeProvider } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -16,15 +17,15 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#9C27B0',
-      light: '#BA68C8',
-      dark: '#7B1FA2',
+      main: '#1792B6',
+      light: '#30B2D7',
+      dark: '#107895',
       contrastText: '#fff'
     },
     secondary: {
-      main: '#6A1B9A',
-      light: '#8E24AA',
-      dark: '#4A148C',
+      main: '#146E88',
+      light: '#1E8BA9',
+      dark: '#0C5167',
       contrastText: '#fff'
     },
     background: {
@@ -84,9 +85,9 @@ const theme = createTheme({
           }
         },
         contained: {
-          backgroundImage: 'linear-gradient(135deg, #9C27B0 0%, #6A1B9A 100%)',
+          backgroundImage: 'linear-gradient(135deg, #1792B6 0%, #146E88 100%)',
           '&:hover': {
-            backgroundImage: 'linear-gradient(135deg, #BA68C8 0%, #8E24AA 100%)'
+            backgroundImage: 'linear-gradient(135deg, #30B2D7 0%, #1E8BA9 100%)'
           }
         }
       }
@@ -118,15 +119,17 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/*" element={<Layout />}>
-              <Route index element={<Navigate to="/athletes" replace />} />
-              <Route path="athletes" element={<AthleteTokenList />} />
-              <Route path="athletes/create" element={<CreateAthleteToken />} />
-              <Route path="ftos" element={<FTOList />} />
-              <Route path="ftos/create" element={<CreateFTO />} />
-              <Route path="events" element={<EventList />} />
-              <Route path="create-event" element={<CreateEvent />} />
-              <Route path="submissions/:eventId" element={<SubmissionsList />} />
+              <Route index element={<Navigate to="/analytics" replace />} />
+              <Route path="map" element={<MapView />} />
+              <Route path="companies" element={<CompanyList />} />
+              <Route path="companies/create" element={<CreateCompany />} />
+              <Route path="companies/edit/:id" element={<CreateCompany />} />
+              <Route path="locations" element={<LocationList />} />
+              <Route path="locations/create" element={<CreateLocation />} />
+              <Route path="analytics" element={<AnalyticsView />} />
               <Route path="users" element={<UserList />} />
+              <Route path="users/create" element={<CreateUser />} />
+              <Route path="jobs" element={<JobsList />} />
             </Route>
           </Routes>
         </BrowserRouter>

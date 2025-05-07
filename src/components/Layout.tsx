@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+// import DashboardIcon from '@mui/icons-material/Dashboard';
 import TokenIcon from '@mui/icons-material/Token';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import EventIcon from '@mui/icons-material/Event';
@@ -27,7 +27,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 const drawerWidth = 280;
 
 const StyledAppBar = styled(AppBar)(() => ({
-  backgroundImage: 'linear-gradient(135deg, rgba(26, 22, 37, 0.98) 0%, rgba(19, 17, 28, 0.98) 100%)',
+  backgroundImage: 'linear-gradient(135deg, rgba(19, 112, 139, 0.98) 0%, rgba(13, 83, 104, 0.98) 100%)',
   backdropFilter: 'blur(10px)',
   borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
   boxShadow: 'none'
@@ -44,7 +44,7 @@ const StyledDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
     width: drawerWidth,
     boxSizing: 'border-box',
-    backgroundImage: 'linear-gradient(135deg, #1A1625 0%, #13111C 100%)',
+    backgroundImage: 'linear-gradient(135deg, #115E74 0%, #0C4559 100%)',
     borderRight: '1px solid rgba(255, 255, 255, 0.1)',
   },
 }));
@@ -77,11 +77,12 @@ const StyledListItemButtonWithLink = styled(ListItemButton)<StyledListItemButton
 }));
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Athlete Tokens', icon: <TokenIcon />, path: '/athletes' },
-  { text: 'FTOs', icon: <CampaignIcon />, path: '/ftos' },
-  { text: 'Events', icon: <EventIcon />, path: '/events' },
+  // { text: 'Map View', icon: <DashboardIcon />, path: '/map' },
+  { text: 'Analytics', icon: <EventIcon />, path: '/analytics' },
   { text: 'Users', icon: <PeopleIcon />, path: '/users' },
+  { text: 'Companies', icon: <TokenIcon />, path: '/companies' },
+  { text: 'Jobs', icon: <CampaignIcon />, path: '/jobs' },
+  { text: 'Locations', icon: <CampaignIcon />, path: '/locations' },
 ];
 
 export default function Layout() {
@@ -104,7 +105,7 @@ export default function Layout() {
         display: 'flex', 
         alignItems: 'center', 
         gap: 2,
-        backgroundImage: 'linear-gradient(135deg, #9C27B0 0%, #6A1B9A 100%)',
+        backgroundImage: 'linear-gradient(135deg, #1792B6 0%, #146E88 100%)',
         color: 'white',
         borderRadius: '0 0 24px 0',
         mb: 2,
@@ -113,18 +114,18 @@ export default function Layout() {
           sx={{ 
             width: 48, 
             height: 48,
-            bgcolor: 'rgba(255, 255, 255, 0.2)',
+            bgcolor: 'rgba(23, 146, 182, 0.2)',
             border: '2px solid rgba(255, 255, 255, 0.5)',
           }}
         >
-          AT
+          BN
         </Avatar>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Token Admin
+            Battery Nexus
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.8 }}>
-            Athlete Fan Token Platform
+            Company Location Management
           </Typography>
         </Box>
       </Box>
