@@ -151,6 +151,7 @@ const CompanyList = () => {
                   {/* <TableCell>About</TableCell> */}
                   {/* <TableCell>Contact</TableCell> */}
                   <TableCell>Website</TableCell>
+                  <TableCell>Referral Code</TableCell>
                   <TableCell>Locations</TableCell>
                   <TableCell>Created</TableCell>
                   <TableCell align="right">Actions</TableCell>
@@ -181,6 +182,21 @@ const CompanyList = () => {
                             {company.website}
                           </a>
                         ) : 'No website'}
+                      </TableCell>
+                      <TableCell>
+                        {company.referralCode ? (
+                          <Chip 
+                            label={company.referralCode} 
+                            size="small" 
+                            color="secondary"
+                            sx={{ 
+                              fontFamily: 'monospace',
+                              fontSize: '0.75rem',
+                              bgcolor: 'rgba(23, 146, 182, 0.1)',
+                              color: '#1792B6'
+                            }}
+                          />
+                        ) : 'No code'}
                       </TableCell>
                       {/* <TableCell>
                         <Typography variant="body2">{company.contactEmail || 'No email'}</Typography>

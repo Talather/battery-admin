@@ -123,7 +123,7 @@ function App() {
               <Route path="map" element={<MapView />} />
               <Route path="companies" element={<CompanyList />} />
               <Route path="companies/create" element={<CreateCompany />} />
-              <Route path="companies/edit/:id" element={<CreateCompany />} />
+              <Route path="companies/:id" element={<CreateCompany />} />
               <Route path="locations" element={<LocationList />} />
               <Route path="locations/create" element={<CreateLocation />} />
               <Route path="analytics" element={<AnalyticsView />} />

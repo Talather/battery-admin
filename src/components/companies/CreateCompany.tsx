@@ -14,8 +14,9 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AddressAutocomplete from '../common/AddressAutocomplete';
-  import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { 
   db, 
   collection, 
@@ -23,6 +24,8 @@ import {
   getDoc,
   updateDoc, 
   addDoc,
+  getDocs,
+  deleteDoc,
   geohashForLocation
 } from '../../lib/firebase';
 
@@ -42,12 +45,22 @@ interface Coords {
   lng: number;
 }
 
+interface Location {
+  id: string;
+  address: string;
+  lat: number;
+  lng: number;
+  geoHash: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const CreateCompany = () => {
   // const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
   const [formData, setFormData] = useState({
-    name: '',
+    companyName: '',
     companyAbout: '',
     website: '',
     keywords: '',
@@ -61,6 +74,7 @@ const CreateCompany = () => {
   const [success, setSuccess] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [existingProfile, setExistingProfile] = useState<any>(null);
+  const [existingLocations, setExistingLocations] = useState<Location[]>([]);
 
   // Load existing company profile if id is provided
   useEffect(() => {
@@ -68,12 +82,14 @@ const CreateCompany = () => {
       if (id) {
         try {
           setInitialLoading(true);
+          
+          // Fetch company profile
           const companyDoc = await getDoc(doc(db, "companyProfiles", id));
           
           if (companyDoc.exists()) {
             const companyData = companyDoc.data();
             setFormData({
-              name: companyData.name || '',
+              companyName: companyData.companyName || '',
               companyAbout: companyData.companyAbout || '',
               website: companyData.website || '',
               keywords: Array.isArray(companyData.keywords) 
@@ -85,6 +101,16 @@ const CreateCompany = () => {
               id,
               ...companyData
             });
+            
+            // Fetch existing locations
+            const locationsCollection = collection(db, `companyProfiles/${id}/locations`);
+            const locationsSnapshot = await getDocs(locationsCollection);
+            const locationsList = locationsSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as Location[];
+            setExistingLocations(locationsList);
+            
           } else {
             setError('Company profile not found');
           }
@@ -116,26 +142,49 @@ const CreateCompany = () => {
     setSelectedCoords(coords);
   };
 
+  const handleDeleteLocation = async (locationId: string) => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, `companyProfiles/${id}/locations`, locationId));
+      
+      // Update local state by removing the deleted location
+      setExistingLocations(existingLocations.filter(loc => loc.id !== locationId));
+      setError(null);
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      setError('Failed to delete location');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       setLoading(true);
-      if(!selectedCoords || !address){
-        setError("Please select a valid address");
+      
+      // For new companies, require a location. For existing companies, location is optional.
+      if (!existingProfile && (!selectedCoords || !address)) {
+        setError("Please select a valid address for the new company");
         setLoading(false);
         return;
       }
 
-      // Create geohash for location
-      const geoHash = geohashForLocation([
-        selectedCoords.lat,
-        selectedCoords.lng,
-      ]);
+      let geoHash;
+      if (selectedCoords && address) {
+        // Create geohash for location only if location is provided
+        geoHash = geohashForLocation([
+          selectedCoords.lat,
+          selectedCoords.lng,
+        ]);
+      }
       
       // Create company data without locations (they'll be in a subcollection)
       const companyData: any = {
-        companyName: formData.name,
+        companyName: formData.companyName,
         companyAbout: formData.companyAbout,
         website: formData.website,
         keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
@@ -154,17 +203,19 @@ const CreateCompany = () => {
         );
         companyId = existingProfile.id;
         
-        // Add new location to the locations subcollection
-        const locationData = {
-          address: address,
-          lat: selectedCoords.lat,
-          lng: selectedCoords.lng,
-          geoHash: geoHash,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        
-        await addDoc(collection(db, `companyProfiles/${companyId}/locations`), locationData);
+        // Add new location to the locations subcollection only if provided
+        if (selectedCoords && address && geoHash) {
+          const locationData = {
+            address: address,
+            lat: selectedCoords.lat,
+            lng: selectedCoords.lng,
+            geoHash: geoHash,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          await addDoc(collection(db, `companyProfiles/${companyId}/locations`), locationData);
+        }
         
         setSuccess(true);
         setError(null);
@@ -181,8 +232,8 @@ const CreateCompany = () => {
         // Add first location to the locations subcollection
         const locationData = {
           address: address,
-          lat: selectedCoords.lat,
-          lng: selectedCoords.lng,
+          lat: selectedCoords?.lat,
+          lng: selectedCoords?.lng,
           geoHash: geoHash,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -237,10 +288,13 @@ const CreateCompany = () => {
           <CardContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Company Profile Created!
+                {existingProfile ? 'Company Profile Updated!' : 'Company Profile Created!'}
               </Typography>
               <Typography paragraph sx={{ mb: 3, textAlign: 'center' }}>
-                The company profile has been {existingProfile ? 'updated' : 'created'} successfully. Location has been added to the company profile.
+                The company profile has been {existingProfile ? 'updated' : 'created'} successfully. 
+                {existingProfile 
+                  ? (selectedCoords && address ? 'New location has been added to the company profile.' : 'Company information has been updated.') 
+                  : 'Location has been added to the company profile.'}
               </Typography>
               {!existingProfile && referralCode && (
                 <Paper elevation={0} sx={{ p: 3, bgcolor: 'rgba(23, 146, 182, 0.1)', borderRadius: 2, mb: 3, width: '100%', maxWidth: 300 }}>
@@ -276,8 +330,8 @@ const CreateCompany = () => {
                     required
                     fullWidth
                     label="Company Name"
-                    name="name"
-                    value={formData.name}
+                    name="companyName"
+                    value={formData.companyName}
                     onChange={handleChange}
                   />
                 </Grid>
@@ -319,10 +373,59 @@ const CreateCompany = () => {
 
                 <Grid item xs={12}>
                   <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                    Location
+                    {existingProfile ? 'Add New Location' : 'Location'}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
+                
+                {/* Show existing locations for edit mode */}
+                {existingProfile && existingLocations.length > 0 && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom sx={{ mb: 2, fontWeight: 'medium' }}>
+                      Existing Locations ({existingLocations.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+                      {existingLocations.map((location) => (
+                        <Paper 
+                          key={location.id}
+                          elevation={0} 
+                          sx={{ 
+                            p: 2, 
+                            bgcolor: 'rgba(255, 255, 255, 0.05)', 
+                            borderRadius: 2,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationOnIcon color="primary" />
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                {location.address}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Coordinates: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                                Added: {new Date(location.createdAt).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteLocation(location.id)}
+                            disabled={loading}
+                            startIcon={<DeleteIcon />}
+                          >
+                            Remove
+                          </Button>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Grid>
+                )}
                 
                 <Grid item xs={12}>
                   <AddressAutocomplete
