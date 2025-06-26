@@ -63,6 +63,7 @@ const CreateCompany = () => {
     companyName: '',
     companyAbout: '',
     website: '',
+    companyLinkedn: '',
     keywords: '',
   });
   
@@ -92,6 +93,7 @@ const CreateCompany = () => {
               companyName: companyData.companyName || '',
               companyAbout: companyData.companyAbout || '',
               website: companyData.website || '',
+              companyLinkedn: companyData.companyLinkedn || '',
               keywords: Array.isArray(companyData.keywords) 
                 ? companyData.keywords.join(', ') 
                 : companyData.keywords || '',
@@ -187,6 +189,7 @@ const CreateCompany = () => {
         companyName: formData.companyName,
         companyAbout: formData.companyAbout,
         website: formData.website,
+        companyLinkedn: formData.companyLinkedn,
         keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
         createdAt: existingProfile?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -360,6 +363,17 @@ const CreateCompany = () => {
                   />
                 </Grid>
                 
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="LinkedIn"
+                    name="companyLinkedn"
+                    value={formData.companyLinkedn}
+                    onChange={handleChange}
+                    placeholder="e.g. https://www.linkedin.com/company/example"
+                  />
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth

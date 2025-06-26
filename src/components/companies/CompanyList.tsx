@@ -34,6 +34,7 @@ interface Company {
   address?: string;
   companyAbout?: string;
   website?: string;
+  companyLinkedn?: string;
   contactEmail?: string;
   phoneNumber?: string;
   createdAt?: string;
@@ -151,6 +152,7 @@ const CompanyList = () => {
                   {/* <TableCell>About</TableCell> */}
                   {/* <TableCell>Contact</TableCell> */}
                   <TableCell>Website</TableCell>
+                  <TableCell>LinkedIn</TableCell>
                   <TableCell>Referral Code</TableCell>
                   <TableCell>Locations</TableCell>
                   <TableCell>Created</TableCell>
@@ -160,11 +162,11 @@ const CompanyList = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">Loading...</TableCell>
+                    <TableCell colSpan={8} align="center">Loading...</TableCell>
                   </TableRow>
                 ) : filteredCompanies.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">No companies found</TableCell>
+                    <TableCell colSpan={8} align="center">No companies found</TableCell>
                   </TableRow>
                 ) : (
                   filteredCompanies.map((company) => (
@@ -184,6 +186,18 @@ const CompanyList = () => {
                         ) : 'No website'}
                       </TableCell>
                       <TableCell>
+                        {company.companyLinkedn ? (
+                          <a 
+                            href={company.companyLinkedn.startsWith('http') ? company.companyLinkedn : `https://${company.companyLinkedn}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#1792B6', textDecoration: 'none' }}
+                          >
+                            LinkedIn
+                          </a>
+                        ) : 'No LinkedIn'}
+                      </TableCell>
+                      <TableCell>
                         {company.referralCode ? (
                           <Chip 
                             label={company.referralCode} 
@@ -198,11 +212,6 @@ const CompanyList = () => {
                           />
                         ) : 'No code'}
                       </TableCell>
-                      {/* <TableCell>
-                        <Typography variant="body2">{company.contactEmail || 'No email'}</Typography>
-                        <Typography variant="body2" color="text.secondary">{company.phoneNumber || 'No phone'}</Typography>
-                      </TableCell> */}
-                      
                       <TableCell>
                         <Chip 
                           label={`${company.locationCount || 0} locations`} 
