@@ -39,7 +39,7 @@ const AnalyticsView = () => {
         const usersCollection = collection(db, 'users');
         const usersSnapshot = await getDocs(usersCollection);
         setTotalUsers(usersSnapshot.size);
-        
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching analytics data:', error);
       } finally {

@@ -67,7 +67,7 @@ const CreateCompany = () => {
     keywords: '',
   });
   
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState('Enter an address');
   const [selectedCoords, setSelectedCoords] = useState<Coords | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(id ? true : false);
