@@ -67,7 +67,9 @@ const CreateCompany = () => {
     keywords: '',
   });
   
-  const [address, setAddress] = useState('Enter an address');
+  const [address, setAddress] = useState('');
+  const [searchAddress, setSearchAddress] = useState('');
+
   const [selectedCoords, setSelectedCoords] = useState<Coords | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(id ? true : false);
@@ -138,6 +140,7 @@ const CreateCompany = () => {
   
   const handleAddressChange = (newAddress: string) => {
     setAddress(newAddress);
+    setSearchAddress("");
   };
   
   const handleCoordsChange = (coords: Coords) => {
@@ -445,7 +448,7 @@ const CreateCompany = () => {
                   <AddressAutocomplete
                     setAddress={handleAddressChange}
                     setCoordinates={handleCoordsChange}
-                    defaultAddress={address}
+                    defaultAddress={searchAddress}
                   />
                 </Grid>
                 

@@ -87,7 +87,8 @@ const AddressAutocomplete = ({
 
   // Handle address selection
   const handleSelectAddress = (placeId: string, description: string) => {
-    setQuery(description);
+    console.log(description);
+    setQuery("");
     setPredictions([]);
     
     const geocoder = new window.google.maps.Geocoder();
