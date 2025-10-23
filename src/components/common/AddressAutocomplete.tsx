@@ -118,7 +118,6 @@ const AddressAutocomplete = ({
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Enter an address to search"
         inputRef={inputRef}
-        required
         autoComplete="off"
         InputProps={{
           endAdornment: loading ? <CircularProgress size={20} /> : null,
